@@ -30,8 +30,8 @@ source_files:
 	$(call check_defined, SRC)
 	$(CC) -o $@ -c $< $(CFLAGS)
 
-$(APP): $(OBJ) $(LIB)
-	$(CC) -o $@ $^ $(CFLAGS)
+$(APP): $(OBJ)
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 clean:
 	rm -f *.o *.a $(APP)
