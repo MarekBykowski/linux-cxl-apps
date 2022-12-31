@@ -5,7 +5,7 @@
 #include <fcntl.h>
 
 /*#include "cxl_mem_wrapper.h"*/
-//#include <cxl_mem.h>
+#include <cxl_mem.h>
 
 const char* help= "\
 -h                           help message\n\
