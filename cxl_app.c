@@ -147,7 +147,8 @@ int cxl_doe_cxl(char* entry_s, char* data_s) {
      return 0;
 };
 
-int cxl_doe_cma(char* entry_s, char* data_s) {
+int cxl_doe_cma(char* entry_s, char* data_s)
+{
      cxl_pdev_config* config_payload= malloc(sizeof(cxl_pdev_config));
      uint32_t data_obj[3];
 
@@ -175,7 +176,8 @@ int cxl_doe_cma(char* entry_s, char* data_s) {
      doe_config(config_payload, 0x16c, 0, READ);
 };
 
-int cxl_doe_discovery(char* entry_s, char* data_s) {
+int cxl_doe_discovery(char* entry_s, char* data_s)
+{
      cxl_pdev_config* config_payload= malloc(sizeof(cxl_pdev_config));
      uint32_t data_obj[3];
 
@@ -213,7 +215,8 @@ int cxl_doe_discovery(char* entry_s, char* data_s) {
      return 0;
 };
 
-int parse_input(int argc, char** argv) {
+int parse_input(int argc, char** argv)
+{
      int idx;
      if (argc < 2) return -1;
      for (idx= 0; idx < argc; idx++) {
@@ -235,7 +238,8 @@ int parse_input(int argc, char** argv) {
      return 0;
 };
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
      int ret;
      char* dev_path= "/dev/cxl/mem0";
 
