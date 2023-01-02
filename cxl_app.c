@@ -3,9 +3,34 @@
 #include <sys/ioctl.h>
 #include <string.h>
 #include <fcntl.h>
+#include <stdlib.h>
 
 /*#include "cxl_mem_wrapper.h"*/
 #include <cxl_mem.h>
+
+
+/*
+ * To understand the IOCTL code/define from cxl_mem.h, eg. 
+ *
+ *   #define CXL_MEM_QUERY_COMMANDS _IOR(0xCE, 1, struct cxl_mem_query_commands)
+ *
+ * go to Documentation/userspace-api/ioctl/ioctl-decoding.rst.
+ *
+ * To understand what the _IO, _IOW, _IOR, _IORW are go to
+ * Documentation/userspace-api/ioctl/ioctl-number.rst. In brief, these are
+ * the macros that take three? args:
+ * - 1st arg is a identifying letter
+ * - 2nd -//- is a sequence number
+ * - 3rd (and last) is a type of the data going into or coming out of the kernel
+ *
+ * For CXL it is (excerpt from the doc):
+ * ====  =====  ====================== ======================
+ * Code  Seq#   Include File           Comments
+ * ====  =====  ====================== ======================
+ * [...]
+ * 0xCE  01-02  uapi/linux/cxl_mem.h   Compute Express Link
+ * [...]
+ */
 
 const char* help= "\
 -h                           help message\n\
@@ -41,11 +66,11 @@ int cxl_query()
 
      cxl_mem_query_commands* cmds= malloc(sizeof(cxl_mem_query_commands)
                                  + n_cmds * sizeof(cxl_command_info));
-     cmds->n_commands= n_cmds;
+     cmds->n_commands = n_cmds;
      // QUERY with command size & pre-alloc memory
      ioctl(FD, CXL_MEM_QUERY_COMMANDS, cmds);
 
-     for (int i= 0; i < (int)cmds->n_commands; i++) {
+     for (int i = 0; i < (int)cmds->n_commands; i++) {
          printf(" id %d", cmds->commands[i].id);
          printf(" flags %d", cmds->commands[i].flags);
          printf(" size_in %d", cmds->commands[i].size_in);
@@ -55,6 +80,7 @@ int cxl_query()
      return 0;
 };
 
+#if 0
 int cxl_config(char* offset_s, char* data_s)
 {
      int offset, data, is_write;
@@ -214,6 +240,7 @@ int cxl_doe_discovery(char* entry_s, char* data_s)
 
      return 0;
 };
+#endif
 
 int parse_input(int argc, char** argv)
 {
@@ -224,6 +251,7 @@ int parse_input(int argc, char** argv)
              return -1;
          if (strcmp(argv[idx], "-query") == 0)
              return cxl_query();
+#if 0
          if (strcmp(argv[idx], "-cfg_rd") == 0)
              return cxl_config(argv[idx + 1], NULL);
          if (strcmp(argv[idx], "-cfg_wr") == 0)
@@ -234,6 +262,7 @@ int parse_input(int argc, char** argv)
              return cxl_doe_cxl(argv[idx + 1], argv[idx + 2]);
          if (strcmp(argv[idx], "-doe_cma") == 0)
              return cxl_doe_cma(argv[idx + 1], NULL);
+#endif
      }
      return 0;
 };
