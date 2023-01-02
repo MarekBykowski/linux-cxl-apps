@@ -10,7 +10,7 @@ __check_defined = \
 #	$(call check_defined, SRC)
 
 CC=gcc
-CFLAGS=-g -Wall -I./include/linux
+CFLAGS=-g -Wall -I./include_wa_kernel_headers
 PKG=pkg-config --cflags --libs glib-2.0
 
 SRC=cxl_app.c

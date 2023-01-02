@@ -6,7 +6,11 @@
 #ifndef _CXL_MEM_H_
 #define _CXL_MEM_H_
 
+#ifdef __KERNEL__
 #include <linux/types.h>
+#else
+#include <kernel_types.h>
+#endif
 
 /**
  * DOC: UAPI

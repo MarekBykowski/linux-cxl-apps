@@ -5,12 +5,10 @@
 #include <fcntl.h>
 #include <stdlib.h>
 
-/*#include "cxl_mem_wrapper.h"*/
-#include <cxl_mem.h>
-
+#include "include/linux/cxl_mem.h"
 
 /*
- * To understand the IOCTL code/define from cxl_mem.h, eg. 
+ * To understand the IOCTL code/define from cxl_mem.h, eg.
  *
  *   #define CXL_MEM_QUERY_COMMANDS _IOR(0xCE, 1, struct cxl_mem_query_commands)
  *
