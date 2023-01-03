@@ -10,21 +10,25 @@ __check_defined = \
 #	$(call check_defined, SRC)
 
 CC=gcc
-CFLAGS=-g -Wall -I./include_wa_kernel_headers
+CFLAGS=-g -Wall -I./include_b
 PKG=pkg-config --cflags --libs glib-2.0
 
-SRC=cxl_app.c
+SRC=cxl_app.c mbox.c
 OBJ=$(SRC:.c=.o)
-APP=$(patsubst %.c,%,$(SRC))
+#APP=$(patsubst %.c,%,$(SRC))
+APP=cxl_app
 
 #$@ - output file/target
 #$< - takes only the first item on the dependencies list
 #$^ - takes all the items on the dependencies list
 
-all: $(APP)
+all: $(APP) secure-copy
 
 source_files:
 	@echo $(SRC)
+
+secure-copy:
+	scp cxl_app rq:/root
 
 %.o: %.c
 	$(call check_defined, SRC)
@@ -36,4 +40,4 @@ $(APP): $(OBJ)
 clean:
 	rm -f *.o *.a $(APP)
 
-.PHONY: all clean
+.PHONY: all clean secure-copy

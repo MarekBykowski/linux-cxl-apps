@@ -6,11 +6,13 @@
 #include <stdlib.h>
 
 #include "include/linux/cxl_mem.h"
+#include <mbox.h>
 
 /*
  * To understand the IOCTL code/define from cxl_mem.h, eg.
  *
  *   #define CXL_MEM_QUERY_COMMANDS _IOR(0xCE, 1, struct cxl_mem_query_commands)
+ *   #define CXL_MEM_SEND_COMMAND _IOWR(0xCE, 2, struct cxl_send_command)
  *
  * go to Documentation/userspace-api/ioctl/ioctl-decoding.rst.
  *
@@ -28,6 +30,13 @@
  * [...]
  * 0xCE  01-02  uapi/linux/cxl_mem.h   Compute Express Link
  * [...]
+ *
+ * However it is rather impossible to include the cxl_mem.h without the changes.
+ * It shall be used by the libraries, eg. glibc and not directly by the apps.
+ * However because installing/updating the libs may be impossible without
+ * the root access or cumbersome in other cases, there are ways to use
+ * the header file directly.
+ * See https://github.com/MarekBykowski/readme/wiki/kernel-headers-for-svc
  */
 
 const char* help= "\
@@ -69,13 +78,63 @@ int cxl_query()
      ioctl(FD, CXL_MEM_QUERY_COMMANDS, cmds);
 
      for (int i = 0; i < (int)cmds->n_commands; i++) {
-         printf(" id %d", cmds->commands[i].id);
-         printf(" flags %d", cmds->commands[i].flags);
-         printf(" size_in %d", cmds->commands[i].size_in);
-         printf(" size_out %d\n", cmds->commands[i].size_out);
+		printf("cmd[%d]:", i);
+         printf(" @id %d", cmds->commands[i].id);
+         printf(" @flags %d", cmds->commands[i].flags);
+         printf(" @size_in %d", cmds->commands[i].size_in);
+         printf(" @size_out %d\n", cmds->commands[i].size_out);
      }
 
-     return 0;
+     // SEND
+     // CXL_CMD_FLAG_FORCE_ENABLE
+     //   CXL_CMD_FLAG_FORCE_ENABLE: In cases of error, commands with this flag
+     //   will be enabled by the driver regardless of what hardware may have
+     //   advertised.
+	{
+#if see_how_build_cmd
+		struct cxl_send_command {
+			__u32 id;
+			__u32 flags;
+			union {
+				struct {
+					__u16 opcode;
+					__u16 rsvd;
+				} raw;
+				__u32 rsvd;
+			};
+			__u32 retval;
+
+			struct {
+				__u32 size;
+				__u32 rsvd;
+				__u64 payload;
+			} in;
+
+			struct {
+				__u32 size;
+				__u32 rsvd;
+				__u64 payload;
+			} out;
+		};
+#endif
+		/*
+		 * @id: ID number for the command 1
+		 * @flags: Flags that specify command behavior 0
+		 * @size_in: Expected input size, or ~0 if variable length 0
+		 * @size_out: Expected output size, or ~0 if variable length 67
+		 */
+		char payload_out[67] = {0};
+		struct cxl_send_command *csc = malloc(sizeof(struct cxl_send_command));
+		csc->id = 1;
+		csc->flags = 0;
+		csc->in.size = 0;
+		csc->in.payload = 0;
+		csc->out.size = 67;
+		csc->out.payload = (unsigned long)&payload_out;
+		ioctl(FD, CXL_MEM_SEND_COMMAND, csc);
+		printf("cmd=%s result=%s\n", cxl_mem_id_to_name(csc->id), (char *)csc->out.payload);
+	}
+	return 0;
 };
 
 #if 0
@@ -281,7 +340,6 @@ int main(int argc, char** argv)
          for (int i= 0; i < argc; i++) printf(" %s", argv[i]);;
            printf("\n%s\n", help);
      }
-     printf("DOE\n");
 
      close(FD);
      exit(0);
