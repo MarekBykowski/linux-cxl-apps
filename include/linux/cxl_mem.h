@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
 /*
+ * mb:
  * CXL IOCTLs for Memory Devices
  */
 
@@ -22,6 +23,7 @@
 
 #define CXL_MEM_QUERY_COMMANDS _IOR(0xCE, 1, struct cxl_mem_query_commands)
 #define CXL_MEM_SEND_COMMAND _IOWR(0xCE, 2, struct cxl_send_command)
+#define CXL_MEM_CONFIG_WR _IOWR(0xCE, 3, struct cxl_pdev_config)
 
 #define CXL_CMDS                                                          \
 	___C(INVALID, "Invalid Command"),                                 \
@@ -183,6 +185,19 @@ struct cxl_send_command {
 		__u32 rsvd;
 		__u64 payload;
 	} out;
+};
+
+/*
+ * @retval: Return value from the operation.
+ * @offset: Offset to the config space.
+ * @data: Data written or read to/from the config space.
+ * @is_write: true if writing, false if reading from the offset.
+ */
+struct cxl_pdev_config {
+	__u32 retval;
+	__u32 offset;
+	__u32 val;
+	bool is_write;
 };
 
 #endif
