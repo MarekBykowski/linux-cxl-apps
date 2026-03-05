@@ -11,6 +11,8 @@
 #include <mbox.h>
 #include <doe.h>
 #include <bitfield.h>
+
+#define DEBUG
 #include <debug_or_not.h>
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
@@ -25,7 +27,11 @@
  * go to Documentation/userspace-api/ioctl/ioctl-decoding.rst.
  *
  * To understand what the _IO, _IOW, _IOR, _IORW are go to
- * Documentation/userspace-api/ioctl/ioctl-number.rst. In brief, these are
+ * - Documentation/userspace-api/ioctl/ioctl-number.rst
+ * - Documentation/userspace-api/ioctl/ioctl-decoding.rst
+ * - uapi/linux/cxl_mem.h
+ *
+ * In brief, these are
  * the macros that take three? args:
  * - 1st arg is a identifying letter
  * - 2nd -//- is a sequence number
@@ -104,23 +110,30 @@ int cxl_query(void)
 		printf(" @size_out %d\n", cmds->commands[i].size_out);
 	}
 
+	/* Test run one of the commands */
 	{
-	/*
-	 * @id: ID number for the command 1
-	 * @flags: Flags that specify command behavior 0
-	 * @size_in: Expected input size, or ~0 if variable length 0
-	 * @size_out: Expected output size, or ~0 if variable length 67
-	 */
-	char payload_out[67] = {0};
-	struct cxl_send_command *csc = malloc(sizeof(struct cxl_send_command));
-	csc->id = 1;
-	csc->flags = 0;
-	csc->in.size = 0;
-	csc->in.payload = 0;
-	csc->out.size = 67;
-	csc->out.payload = (unsigned long)&payload_out;
-	ioctl(FD, CXL_MEM_SEND_COMMAND, csc);
-	printf("cmd=%s result=%s\n", cxl_mem_id_to_name(csc->id), (char *)csc->out.payload);
+		/*
+		 * @id: ID number for the command 1
+		 * @flags: Flags that specify command behavior 0
+		 * @size_in: Expected input size, or ~0 if variable length 0
+		 * @size_out: Expected output size, or ~0 if variable length 67
+		 */
+		char payload_out[67] = {0};
+		struct cxl_send_command *csc = malloc(sizeof(struct cxl_send_command));
+		csc->id = 1;
+		csc->flags = 0;
+		csc->in.size = 0;
+		csc->in.payload = 0;
+		csc->out.size = 67;
+		csc->out.payload = (unsigned long)&payload_out;
+
+		printf("mb: let us test-run:\n"
+		       "\tcmd[1]=%s -> @flags 0 @size_in 0 @size_out 67\n",
+		       cxl_mem_id_to_name(csc->id));
+
+		ioctl(FD, CXL_MEM_SEND_COMMAND, csc);
+
+		printf("\tresult=%s\n", (char *)csc->out.payload);
 	}
 
 	return 0;
@@ -216,7 +229,7 @@ int cxl_doe_discovery(char* dword_s)
 	pr_debug("Write DOE header2 (length)\n");
 	doe_config(config_payload, PCI_DOE_WRITE, data_obj[1], WRITE);
 
-	pr_debug("Write DWORD (index=%s)\n", type_s);
+	pr_debug("Write DWORD %x()\n", data_obj[2]);
 	doe_config(config_payload, PCI_DOE_WRITE, data_obj[2], WRITE);
 
 	pr_debug("Set GO\n");
@@ -373,7 +386,7 @@ int cxl_doe_cxl_compliance(char *dword_s)
 	pr_debug("Write DOE header2 (length)\n");
 	doe_config(config_payload, PCI_DOE_WRITE, data_obj[1], WRITE);
 
-	pr_debug("Write DWORD (index=%s)\n", type_s);
+	pr_debug("Write DWORD %x()\n", data_obj[2]);
 	doe_config(config_payload, PCI_DOE_WRITE, data_obj[2], WRITE);
 
 	pr_debug("Set GO\n");

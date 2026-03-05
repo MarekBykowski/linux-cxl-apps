@@ -23,12 +23,13 @@ APP=cxl_app
 #$^ - takes all the items on the dependencies list
 
 all: $(APP) secure-copy
+#all: $(APP)
 
 source_files:
 	@echo $(SRC)
 
 secure-copy:
-	scp cxl_app rq:/root
+	scp cxl_app qr:/home/root
 
 %.o: %.c
 	$(call check_defined, SRC)
